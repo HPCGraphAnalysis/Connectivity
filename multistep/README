@@ -1,0 +1,67 @@
+********************************************************************************
+
+              Multistep: (Strongly) Connected Components Algorithm
+                      Copyright (2016) Sandia Corporation
+
+Questions?  Contact George M. Slota    (slotag@rpi.edu)
+                    Siva Rajamanickam  (srajama@sandia.gov)
+                    Kamesh Madduri     (madduri@cse.psu.edu)
+
+
+If used, please cite:
+
+[1] George M. Slota, Sivasankaran Rajamanickam, and Kamesh Madduri, BFS and 
+Coloring-based Parallel Algorithms for Strongly Connected Components and 
+Related Problems, in the Proceedings of the 28th IEEE International Parallel 
+and Distributed Processing Symposium (IPDPS14).
+
+
+********************************************************************************
+To make:
+
+1.) Set CXX in Makefile to your c++ compiler, adjust CXXFLAGS if necessary
+-OpenMP 3.1 support is required for parallel execution (GCC 4.7 or later)
+-No other dependencies needed
+
+2.) $ make
+-This will make 'scc' and 'cc' executables
+-scc for strongly connected components
+-cc for connected and weakly connected components
+
+
+********************************************************************************
+To run:
+
+$ ./scc [graphfile] [optional: output file]
+$ ./cc [graphfile] [optional: output file]
+
+-[graphfile] is of directed edge list format, n is number of vertices, m is 
+number of directed edges, vertex identifiers are 0-indexed:
+n m
+v0 v1
+v1 v2
+v2 v3
+v3 v0
+...
+
+-To compute connected components of undirected graphs with cc, list each 
+undirected edge once in [graphfile]. E.g. [graphfile] for a single triangle 
+would be:
+3 3
+0 1
+1 2
+2 0
+
+-[output file] will output the SCC/CC mappings, as a file with n lines each 
+corresponding to the mapping [0-(n-1)] for each vertex based on the 'root' 
+vertex id of the SCC/CC that the vertex belongs to
+
+-For weakly connected components, just run cc with [graphfile] listing the 
+directed edges. The edges will be mirrored and considered as undirected 
+internally, so no preprocessing is necessary.
+
+-By default, only the total execution time and connectivity statistics are 
+output. For more complete output, adjust VERBOSE, DEBUG, and VERIFY #define 
+flags at the top of scc_main.cpp and cc_main.cpp
+
+

@@ -1,0 +1,4 @@
+Strongly connected components using Kokkos
+
+7/28/16:  This code will not compile with the current version of Trilinos;
+it will need updates in order to compile.

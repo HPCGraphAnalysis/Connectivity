@@ -84,8 +84,8 @@ struct color_init {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
     Kokkos::deep_copy(host_num_valid, num_valid);
 
-    int team_size = ExecSpace::team_recommended();
-    int num_teams = (*host_num_valid + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
+    int num_teams = (host_num_valid() + WORK_CHUNK - 1 ) / WORK_CHUNK;
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
   }
@@ -95,7 +95,7 @@ struct color_init {
   {
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *num_valid < end ? *num_valid : end;
+    end = num_valid() < end ? num_valid() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -150,16 +150,16 @@ struct color_init_offsets {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
     Kokkos::deep_copy(host_num_valid, num_valid);
     typename long_type::HostMirror host_sizeq_offsets = create_mirror(sizeq_offsets);
-    *host_sizeq_offsets = 0;
+    host_sizeq_offsets() = 0;
     deep_copy(sizeq_offsets, host_sizeq_offsets);
 
-    int team_size = ExecSpace::team_recommended();
-    int num_teams = (*host_num_valid + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
+    int num_teams = (host_num_valid() + WORK_CHUNK - 1 ) / WORK_CHUNK;
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
 
     deep_copy(host_sizeq_offsets, sizeq_offsets);
-    *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
+    host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
     deep_copy(offsets_max, host_offsets_max);
   }
 
@@ -182,7 +182,7 @@ struct color_init_offsets {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *num_valid < end ? *num_valid : end;
+    end = num_valid() < end ? num_valid() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -265,8 +265,8 @@ struct color_get_roots {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
     deep_copy(host_num_valid, num_valid);
 
-    int team_size = ExecSpace::team_recommended();
-    int num_teams = (*host_num_valid + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
+    int num_teams = (host_num_valid() + WORK_CHUNK - 1 ) / WORK_CHUNK;
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
   }
@@ -281,7 +281,7 @@ struct color_get_roots {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *num_valid < end ? *num_valid : end;
+    end = num_valid() < end ? num_valid() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -358,17 +358,17 @@ struct color_get_roots_offsets {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
     Kokkos::deep_copy(host_num_valid, num_valid);
     typename long_type::HostMirror host_sizeq_offsets = create_mirror(sizeq_offsets);
-    *host_sizeq_offsets = 0;
+    host_sizeq_offsets() = 0;
     deep_copy(sizeq_offsets, host_sizeq_offsets);
 
-    int team_size = ExecSpace::team_recommended();
-    int num_teams = (*host_num_valid + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
+    int num_teams = (host_num_valid() + WORK_CHUNK - 1 ) / WORK_CHUNK;
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
 
     deep_copy(host_sizeq_offsets, sizeq_offsets);
-    *host_num_roots = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);
-    *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
+    host_num_roots() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);
+    host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
     deep_copy(num_roots, host_num_roots);
     deep_copy(offsets_max, host_offsets_max);
   }
@@ -393,7 +393,7 @@ struct color_get_roots_offsets {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *num_valid < end ? *num_valid : end;
+    end = num_valid() < end ? num_valid() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -469,11 +469,11 @@ struct color_update_valid {
     deep_copy(host_num_valid, num_valid);
     deep_copy(host_n, n);
 
-    *host_num_valid = 0;
+    host_num_valid() = 0;
     deep_copy(num_valid, host_num_valid);
 
-    int team_size = ExecSpace::team_recommended();
-    int num_teams = (*host_n + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
+    int num_teams = (host_n()+ WORK_CHUNK - 1 ) / WORK_CHUNK;
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
   }
@@ -487,7 +487,7 @@ struct color_update_valid {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *n < end ? *n : end;
+    end = n() < end ? n() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -550,7 +550,7 @@ void do_coloring(Kokkos::View<int, ExecSpace> n,
   typename Kokkos::View<int, ExecSpace>::HostMirror host_num_valid = create_mirror(num_valid);
 
   Kokkos::deep_copy(host_num_valid, num_valid);
-  while (*host_num_valid > 0)
+  while (host_num_valid() > 0)
   {
 
 #if DEBUG
@@ -609,7 +609,7 @@ switch (alg_to_run)
     elt = timer();
 #endif
   
-    host_num_roots = 0;
+    host_num_roots() = 0;
     Kokkos::deep_copy(num_roots, host_num_roots);
 
   if (alg_to_run == 2)

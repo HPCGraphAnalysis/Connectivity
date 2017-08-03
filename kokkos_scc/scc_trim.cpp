@@ -85,8 +85,8 @@ struct simple_trim {
 
     Kokkos::deep_copy(host_n, n);
    
-    int num_teams = (*host_n + WORK_CHUNK - 1 ) / WORK_CHUNK;
-    int team_size = ExecSpace::team_recommended();
+    int num_teams = (host_n() + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this); //I have no idea if this is correct
     team_policy policy(num_teams, team_size);
 #if DEBUG
     printf("%d -- %d\n", num_teams, team_size);
@@ -104,7 +104,7 @@ struct simple_trim {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *n < end ? *n : end;
+    end = n() < end ? n() : end;
     int team_size = dev.team_size();
 
     for (int v = begin; v < end; v += team_size)

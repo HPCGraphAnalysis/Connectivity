@@ -103,7 +103,6 @@ int root_start_in;
 int root_end_in;
 
 typedef Kokkos::DefaultExecutionSpace device_type;
-typedef device_type::host_mirror_device_type host_type;
 typedef Kokkos::TeamPolicy<device_type> team_policy;
 typedef team_policy::member_type team_member;
 
@@ -274,12 +273,6 @@ int main(int argc, char** argv)
 
 
   Kokkos::initialize();
-/*
-#if GPU
-  host_type::initialize(1);
-#endif
-  device_type::initialize();
-*/
 
   int n;
   int m;
@@ -339,7 +332,7 @@ int main(int argc, char** argv)
   int_type::HostMirror max_deg_vert_host = Kokkos::create_mirror_view(max_deg_vert_dev);
   double_type::HostMirror avg_degree_host = Kokkos::create_mirror_view(avg_degree_dev);
 
-  *n_host = n;
+  n_host() = n;
   for (int i = 0; i < n+1; ++i)
   {
     out_degree_list_host[i] = out_degree_list[i];
@@ -350,8 +343,8 @@ int main(int argc, char** argv)
     out_array_host[i] = out_array[i];
     in_array_host[i] = in_array[i]; 
   }
-  *max_deg_vert_host = max_deg_vert;
-  *avg_degree_host = avg_degree;
+  max_deg_vert_host() = max_deg_vert;
+  avg_degree_host() = avg_degree;
 
 
   Kokkos::deep_copy(n_dev, n_host);
@@ -376,12 +369,17 @@ int main(int argc, char** argv)
   graphname = argv[3];
 #endif
 
-  do_run<device_type>(n_dev,
-    out_degree_list_dev, out_array_dev, 
-    in_degree_list_dev, in_array_dev,
-    max_deg_vert_dev, avg_degree_dev,
-    scc_maps,
-    valid_verts_dev, valid_dev, num_valid_dev);
+  do_run<device_type>(n_dev, /* 1 */
+    out_degree_list_dev, /* n+1 */
+    out_array_dev, /* m */
+    in_degree_list_dev, /* n+1 */
+    in_array_dev, /* m */
+    max_deg_vert_dev, /* 1 */
+    avg_degree_dev, /* 1 */
+    scc_maps, /* n */
+    valid_verts_dev, /* n*QUEUE_MULTIPLIER */
+    valid_dev, /* n */
+    num_valid_dev /* 1 */);
 
   this_runtime = timer() - this_runtime;
 
@@ -390,14 +388,6 @@ int main(int argc, char** argv)
   printf("Done, %9.6lf\n", elt);
 #endif
 
-
-
-/*
-  //device_type::finalize();
-#if GPU
-  host_type::finalize();
-#endif
-*/
 
   Kokkos::finalize();
   return 0;

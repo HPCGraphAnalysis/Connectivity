@@ -1,4 +1,4 @@
-KOKKOS_PATH = ../../../Trilinos/packages/kokkos
+KOKKOS_PATH = /lore/cwsmith/develop/build-jessie-kokkos/install
 #SRC = $(wildcard *.cpp)
 SRC = scc_main.cpp
 
@@ -19,16 +19,18 @@ endif
 DEPFLAGS = -M
 
 OBJ = $(SRC:.cpp=.o)
-LIB = libkokkoscore.a
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
-EXTRA_INC = $(KOKKOS_INC)
-EXTRA_LIB = $(KOKKOS_LIB)
+EXTRA_FLAGS = $(KOKKOS_CXXFLAGS)
+EXTRA_INC = $(KOKKOS_CPPFLAGS)
+EXTRA_LIB = $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) 
 
 all: $(OBJ)
-	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
-	rm *.o *.d libkokkoscore.a kokkos_depend.cpp
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) -o $(EXE)
+
+clean: 
+	rm *.o *.d *.a
 
 # Compilation rules
 
@@ -36,10 +38,10 @@ all: $(OBJ)
 	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_FLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_FLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

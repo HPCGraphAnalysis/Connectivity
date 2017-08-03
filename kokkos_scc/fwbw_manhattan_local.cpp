@@ -93,29 +93,29 @@ struct fwbw_manhattan_local {
     typename int_type::HostMirror host_next = create_mirror(next_size);
     typename int_type::HostMirror host_root = create_mirror(root);
     deep_copy(host_root, root);
-    *host_size = 1;
+    host_size() = 1;
     num_visited = 1;
     deep_copy(queue_size, host_size);
-    deep_copy(queue, host_root);
+    queue(0) = host_root();
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
 #endif
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
       //double level_time = timer();
-      printf("%d %d\n", num_visited, *host_size);
+      printf("%d %d\n", num_visited, host_size());
 #endif
-      int num_teams = (*host_size + team_size - 1 ) / team_size;
+      int num_teams = (host_size() + team_size - 1 ) / team_size;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
-      num_visited += *host_next;
-      *host_size = *host_next;
-      *host_next = 0;
+      num_visited += host_next();
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next);
       deep_copy(queue_size, host_size);
 
@@ -163,7 +163,7 @@ struct fwbw_manhattan_local {
     int index = league_offset + team_rank;
     int out_degree;
 
-    if (index < *queue_size)
+    if (index < queue_size())
       out_degree = out_degree(queue[index]);
     else
       out_degree = 0;

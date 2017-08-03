@@ -78,8 +78,8 @@ struct fwbw_init {
     typename int_type::HostMirror n_host = Kokkos::create_mirror(n);
     Kokkos::deep_copy(n_host, n);
 
-    int num_teams = (*n_host + WORK_CHUNK - 1 ) / WORK_CHUNK;
-    int team_size = ExecSpace::team_recommended();
+    int num_teams = (n_host() + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this); //best guess
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
   }
@@ -89,12 +89,12 @@ struct fwbw_init {
   {
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *n < end ? *n : end;
+    end = n() < end ? n() : end;
     int team_size = dev.team_size();
 
     for (int v = begin; v < end; v += team_size)
     {
-      if (v == *root)
+      if (v == root())
       {
         fw[v] = true;
         scc[v] = true;
@@ -141,8 +141,8 @@ struct fwbw_init_offsets {
     typename int_type::HostMirror n_host = Kokkos::create_mirror(n);
     Kokkos::deep_copy(n_host, n);
 
-    int num_teams = (*n_host + WORK_CHUNK - 1 ) / WORK_CHUNK;
-    int team_size = ExecSpace::team_recommended();
+    int num_teams = (n_host() + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this); //I have no idea if this is correct
     team_policy policy(num_teams, team_size);
     Kokkos::parallel_for(policy , *this);
   }
@@ -153,12 +153,12 @@ struct fwbw_init_offsets {
   {
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *n < end ? *n : end;
+    end = n() < end ? n() : end;
     int team_size = dev.team_size();
 
     for (int v = begin; v < end; v += team_size)
     {
-      if (v == *root)
+      if (v == root())
       {
         fw[v] = true;
         scc[v] = true;
@@ -227,11 +227,11 @@ struct fwbw_update_valid {
     deep_copy(host_n, n);
     deep_copy(cur_valid, host_num_valid);
 
-    int num_teams = (*host_n + WORK_CHUNK - 1 ) / WORK_CHUNK;
-    int team_size = ExecSpace::team_recommended();
+    int num_teams = (host_n() + WORK_CHUNK - 1 ) / WORK_CHUNK;
+    int team_size = team_policy::team_size_recommended(*this);
     team_policy policy(num_teams, team_size);
 
-    *host_num_valid = 0;
+    host_num_valid() = 0;
     deep_copy(num_valid, host_num_valid);
 
     Kokkos::parallel_for(policy , *this);
@@ -246,7 +246,7 @@ struct fwbw_update_valid {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *n < end ? *n : end;
+    end = n() < end ? n() : end;
     int team_size = dev.team_size();
 
     for (int i = begin; i < end; i += team_size)
@@ -255,7 +255,7 @@ struct fwbw_update_valid {
       if (scc[vert])
       {
         valid[vert] = false;
-        scc_maps[vert] = *root;
+        scc_maps[vert] = root();
       }
       else if (valid[vert])
       {

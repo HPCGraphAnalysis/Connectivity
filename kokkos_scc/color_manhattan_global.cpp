@@ -112,32 +112,32 @@ struct color_propagate_manhattan_global {
     typename long_type::HostMirror host_sizeq_offsets = create_mirror(sizeq_offsets);
     deep_copy(host_num_valid, num_valid);
     deep_copy(host_offsets_max, offsets_max);
-    *host_size = *host_num_valid;
-    *host_sizeq_offsets = 0;
+    host_size() = host_num_valid();
+    host_sizeq_offsets() = 0;
     num_visited = 0;
     num_visited_edges = 0;
     deep_copy(queue_size, host_size);
     deep_copy(sizeq_offsets, host_sizeq_offsets);
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
 #endif    
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d %d %d\n", *host_size, *host_offsets_max, num_visited_edges);
+      printf("%d %d %d\n", host_size(), host_offsets_max(), num_visited_edges);
 #endif
-      int num_teams = ((int)*host_offsets_max + WORK_CHUNK - 1 ) / WORK_CHUNK;
+      int num_teams = ((int)host_offsets_max() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_sizeq_offsets, sizeq_offsets);
-      *host_size = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);   
-      *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
-      num_visited += *host_size;
-      num_visited_edges += *host_offsets_max;
-      *host_sizeq_offsets = (long)0;
+      host_size() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);   
+      host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
+      num_visited += host_size();
+      num_visited_edges += host_offsets_max();
+      host_sizeq_offsets() = (long)0;
       deep_copy(queue_size, host_size);
       deep_copy(offsets_max, host_offsets_max);
       deep_copy(sizeq_offsets, host_sizeq_offsets);
@@ -367,22 +367,22 @@ struct color_mark_scc_manhattan_global {
     int num_visited = 0;
     int num_visited_edges = 0;
 
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d %d\n", *host_size, *host_offsets_max);
+      printf("%d %d\n", host_size(), host_offsets_max());
 #endif
-      int team_size = ExecSpace::team_recommended();
-      int num_teams = (*host_offsets_max + team_size - 1 ) / team_size;
+      int team_size = team_policy::team_size_recommended(*this);
+      int num_teams = (host_offsets_max() + team_size - 1 ) / team_size;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_sizeq_offsets, sizeq_offsets);
-      *host_size = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);   
-      *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
-      num_visited += *host_size;
-      num_visited_edges += *host_offsets_max;
-      *host_sizeq_offsets = (long)0;
+      host_size() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);   
+      host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
+      num_visited += host_size();
+      num_visited_edges += host_offsets_max();
+      host_sizeq_offsets() = (long)0;
       deep_copy(queue_size, host_size);
       deep_copy(offsets_max, host_offsets_max);
       deep_copy(sizeq_offsets, host_sizeq_offsets);

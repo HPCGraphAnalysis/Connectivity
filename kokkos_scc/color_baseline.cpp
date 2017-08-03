@@ -98,23 +98,23 @@ struct color_propagate_baseline {
     deep_copy(queue_size, host_num_valid);
     deep_copy(host_size, host_num_valid);
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
 #endif    
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d\n", *host_size);
+      printf("%d\n", host_size());
 #endif
-      int num_teams = ( *host_size + WORK_CHUNK - 1 ) / WORK_CHUNK;
+      int num_teams = ( host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
       deep_copy(queue_size, next_size);
-      *host_size = *host_next;
-      *host_next = 0;
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next); 
 
       int_array temp = queue;
@@ -144,7 +144,7 @@ struct color_propagate_baseline {
       int color = -1;
       bool changed = false;
 
-      if (i < *queue_size)
+      if (i < queue_size())
       {
         vert = queue[i];
         in_queue[vert] = false;
@@ -248,24 +248,24 @@ struct color_mark_scc_baseline {
     deep_copy(queue_size, num_roots);
     deep_copy(host_size, num_roots);
 
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
-      int team_size = ExecSpace::team_recommended();
-      int num_teams = (*host_size + WORK_CHUNK - 1 ) / WORK_CHUNK;
+      int team_size = team_policy::team_size_recommended(*this);
+      int num_teams = (host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
       deep_copy(queue_size, next_size);
-      *host_size = *host_next;
-      *host_next = 0;
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next); 
 
       int_array temp = queue;
       queue = queue_next;
       queue_next = temp;
 #if DEBUG
-      printf("%d\n", *host_size);
+      printf("%d\n", host_size());
 #endif
     }
   }
@@ -280,7 +280,7 @@ struct color_mark_scc_baseline {
 
     int begin = dev.league_rank() * WORK_CHUNK + dev.team_rank();
     int end = begin + WORK_CHUNK;
-    end = *queue_size < end ? *queue_size : end;
+    end = queue_size() < end ? queue_size() : end;
     int team_size = dev.team_size();
   
     for (int i = begin; i < end; i += team_size)

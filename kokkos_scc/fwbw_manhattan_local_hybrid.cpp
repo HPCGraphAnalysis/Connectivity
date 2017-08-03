@@ -116,7 +116,7 @@ struct fwbw_manhattan_local_hybrid {
     done_switch = false;
     num_visited = 1;
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
     while (*host_size > 0)
     {
 #if DEBUG
@@ -212,7 +212,7 @@ struct fwbw_manhattan_local_hybrid {
       int index = league_offset + team_rank;
       int out_degree;
 
-      if (index < *queue_size)
+      if (index < queue_size())
         out_degree = out_degree(queue[index]);
       else
         out_degree = 0;
@@ -273,7 +273,7 @@ struct fwbw_manhattan_local_hybrid {
       int end = begin + WORK_CHUNK;
       for (int i = begin; i < end; i += team_size)
       {
-        if (i < *queue_size)
+        if (i < queue_size())
         {
           int vert = valid_verts[i];
           if (!visited[vert] && valid[vert])

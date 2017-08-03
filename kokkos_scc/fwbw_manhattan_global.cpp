@@ -107,34 +107,34 @@ struct fwbw_manhattan_global {
     typename int_type::HostMirror host_root = create_mirror(root);
     deep_copy(host_root, root);
     deep_copy(host_offsets_max, offsets_max);
-    *host_size = 1;
-    *host_sizeq_offsets = 0;
+    host_size() = 1;
+    host_sizeq_offsets() = 0;
     num_visited = 1;
     num_visited_edges = 0;
     deep_copy(queue_size, host_size);
     deep_copy(sizeq_offsets, host_sizeq_offsets);
-    deep_copy(queue, host_root);
+    queue(0) = host_root();
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this); //best guess
 #if DEBUG
     double elt = timer();
 #endif
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
       //double level_time = timer();
-      printf("%d-- %d %d\n", num_visited, *host_size, *host_offsets_max);
+      printf("%d-- %d %d\n", num_visited, host_size(), host_offsets_max());
 #endif
-      int num_teams = ((int)*host_offsets_max + WORK_CHUNK - 1 ) / WORK_CHUNK;
+      int num_teams = ((int)host_offsets_max() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_sizeq_offsets, sizeq_offsets);
-      *host_size = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);   
-      *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
-      num_visited += *host_size;
-      num_visited_edges += *host_offsets_max;
-      *host_sizeq_offsets = (long)0;
+      host_size() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);   
+      host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
+      num_visited += host_size();
+      num_visited_edges += host_offsets_max();
+      host_sizeq_offsets() = (long)0;
       deep_copy(queue_size, host_size);
       deep_copy(offsets_max, host_offsets_max);
       deep_copy(sizeq_offsets, host_sizeq_offsets);
@@ -182,7 +182,7 @@ struct fwbw_manhattan_global {
   KOKKOS_INLINE_FUNCTION
   void operator()( const team_member &dev) const
   { 
-    if (queue_size() == 1 && queue[0] == root) 
+    if (queue_size() == 1 && queue[0] == root()) 
     {
       offsets[0] = 0;
       offsets[queue_size()] = offsets_max();

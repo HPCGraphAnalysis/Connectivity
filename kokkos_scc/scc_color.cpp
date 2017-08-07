@@ -599,7 +599,7 @@ switch (alg_to_run)
       in_queue, in_queue_next,
       owner); break;
   default:
-    printf("\n MAD FUCKING ERROR \n"); 
+    printf("\n ERROR - algorithm option incorrect \n"); 
     exit(0); break;
 }
 
@@ -656,7 +656,7 @@ switch(alg_to_run)
       queue, queue_next,
       offsets, offsets_next, offsets_max); break;
   default:
-    printf("\n MAD FUCKING ERROR \n"); 
+    printf("\n ERROR - algorithm option incorrect \n"); 
     exit(0); break;
 }
 

@@ -90,7 +90,7 @@ for (int t = 0; t < num_iters; ++t)
   typename Kokkos::View<int*, ExecSpace>::HostMirror scc_host = Kokkos::create_mirror(scc_maps);
   typename Kokkos::View<int, ExecSpace>::HostMirror n_host = Kokkos::create_mirror(n);
   Kokkos::deep_copy(n_host, n);
-  int* maps = new int[*n_host];
+  int* maps = new int[n_host()];
 #endif
 
 #if TIMING
@@ -114,7 +114,7 @@ for (int t = 0; t < num_iters; ++t)
   Kokkos::deep_copy(scc_host, scc_maps);
   for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 
   do_fwbw<ExecSpace>(n,
@@ -139,7 +139,7 @@ for (int t = 0; t < num_iters; ++t)
   Kokkos::deep_copy(scc_host, scc_maps);
   for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 
   do_coloring<ExecSpace>(n,
@@ -168,7 +168,7 @@ for (int t = 0; t < num_iters; ++t)
   Kokkos::deep_copy(scc_host, scc_maps);
   for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 #if TIMING
   total_time += this_time;

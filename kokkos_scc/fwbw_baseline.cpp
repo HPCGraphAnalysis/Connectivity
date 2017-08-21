@@ -105,7 +105,7 @@ struct fwbw_baseline {
     while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d %d\n", num_visited, *host_size);
+      printf("%d %d\n", num_visited, host_size());
 #endif
       int num_teams = (host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);

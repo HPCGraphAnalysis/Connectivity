@@ -627,7 +627,7 @@ switch (alg_to_run)
 #if DEBUG
     elt = timer() - elt;
     deep_copy(host_num_roots, num_roots);
-    printf("Color roots: %9.6lf, %d\n", elt, *host_num_roots);
+    printf("Color roots: %9.6lf, %d\n", elt, host_num_roots());
     elt = timer();
 #endif
 
@@ -673,7 +673,7 @@ switch(alg_to_run)
     elt = timer() - elt;
     printf("Color update: %9.6lf\n", elt);
     elt = timer();  
-    printf("coloring valid: %d\n", *host_num_valid);
+    printf("coloring valid: %d\n", host_num_valid());
 #endif
   }
 }

@@ -337,18 +337,21 @@ void do_fwbw(
 switch (alg_to_run)
 {
   case 0:
+    printf("case 0 fwbw_baseline\n");
     fwbw_baseline<ExecSpace>(
       out_degree_list, out_array, 
       valid,
       max_degree_vert, fw,
       queue, queue_next); break;
   case 1:
+    printf("case 1 fwbw_manhattan_local\n");
     fwbw_manhattan_local<ExecSpace>(
       out_degree_list, out_array, 
       valid,
       max_degree_vert, fw,
       queue, queue_next); break;
   case 2:
+    printf("case 2 fwbw_manhattan_global\n");
     fwbw_manhattan_global<ExecSpace>(
       out_degree_list, out_array, 
       valid,

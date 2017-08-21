@@ -102,12 +102,14 @@ struct fwbw_baseline {
 #if DEBUG
     double elt = timer();
 #endif
+    int count = 0;
     while (host_size() > 0)
     {
-#if DEBUG
-      printf("%d %d\n", num_visited, host_size());
-#endif
       int num_teams = (host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;
+#if DEBUG
+      printf("iter %d num_visited %d host_size %d num_teams %d\n",
+          count, num_visited, host_size(), num_teams);
+#endif
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 

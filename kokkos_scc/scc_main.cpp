@@ -272,7 +272,9 @@ int main(int argc, char** argv)
   typedef Kokkos::View<double, device_type> double_type;
 
 
-  Kokkos::initialize();
+  Kokkos::initialize(argc,argv);
+  printf ("Kokkos default execution space %s\n",
+      typeid (Kokkos::DefaultExecutionSpace).name ());
 
   int n;
   int m;

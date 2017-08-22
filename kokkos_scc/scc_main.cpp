@@ -45,11 +45,12 @@
 
 
 using namespace std;
+#define GPU 1
 
 #include <Kokkos_Core.hpp>
-//#if GPU
-//#include <Kokkos_Cuda.hpp>
-//#endif
+#if GPU
+#include <Kokkos_Cuda.hpp>
+#endif
 #include <Kokkos_DualView.hpp>
 //#include <Kokkos_Atomic.hpp>
 
@@ -59,7 +60,6 @@ using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
 
-#define GPU 0
 
 #if GPU
   #define LOCAL_BUFFER_LENGTH 16
@@ -81,7 +81,7 @@ using namespace std;
 #define TIMING 0
 #define VERBOSE 1
 #define DEBUG 0
-#define VERIFY 0
+#define VERIFY 1
 
 #define NUM_RUNS 5
 #define TIMING_BFS 0

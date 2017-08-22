@@ -45,7 +45,6 @@
 
 
 using namespace std;
-#define GPU 1
 
 #include <Kokkos_Core.hpp>
 #if GPU

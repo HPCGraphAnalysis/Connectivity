@@ -191,7 +191,7 @@ struct fwbw_manhattan_global {
       offsets[0] = 0;
       offsets[queue_size()] = offsets_max();
     }
-Kokkos::View<int, Kokkos::MemoryUnmanaged> team_queue_size(dev.team_shmem());
+    Kokkos::View<int, Kokkos::MemoryUnmanaged> team_queue_size(dev.team_shmem());
     Kokkos::View<int, Kokkos::MemoryUnmanaged> team_sum(dev.team_shmem());
    
     Kokkos::View<long, Kokkos::MemoryUnmanaged> offset_and_sum(dev.team_shmem());
@@ -204,7 +204,6 @@ Kokkos::View<int, Kokkos::MemoryUnmanaged> team_queue_size(dev.team_shmem());
     int local_offsets[ LOCAL_BUFFER_LENGTH ];
     int local_count = 0;
     int local_sum = 0;
-    long local_qsize_off;
 
     int team_size = dev.team_size();
     int team_rank = dev.team_rank();

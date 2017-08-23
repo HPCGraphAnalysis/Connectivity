@@ -194,7 +194,6 @@ struct color_propagate_manhattan_global {
     int local_offsets[ LOCAL_BUFFER_LENGTH ];
     int local_count = 0;
     int local_sum = 0;
-    long local_qsize_off;
 
     int team_size = dev.team_size();
     int team_rank = dev.team_rank();
@@ -218,7 +217,6 @@ struct color_propagate_manhattan_global {
         if (do_search)
         {          
           bool found = false;
-          int iter = 0;
     //      bound_high = queue_size();
           int new_high = bound_high;
           int new_low = bound_low;
@@ -437,7 +435,6 @@ struct color_mark_scc_manhattan_global {
     int local_offsets[ LOCAL_BUFFER_LENGTH ];
     int local_count = 0;
     int local_sum = 0;
-    long local_qsize_off;
 
     int team_size = dev.team_size();
     int team_rank = dev.team_rank();
@@ -461,7 +458,6 @@ struct color_mark_scc_manhattan_global {
         if (do_search)
         {
           bool found = false;
-          int iter = 0;
           int new_high = bound_high;
           int new_low = bound_low;
           while (!found)

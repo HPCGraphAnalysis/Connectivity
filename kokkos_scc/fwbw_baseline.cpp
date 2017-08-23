@@ -105,8 +105,8 @@ struct fwbw_baseline {
     int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
-#endif
     int count = 0;
+#endif
     while (host_size() > 0)
     {
       int num_teams = (host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;

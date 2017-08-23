@@ -61,7 +61,6 @@ void do_run(Kokkos::View<int, ExecSpace> n,
 #if TIMING
 for (int a = 0; a < 3; ++a)
 {
-char* algname = new char[100];
 alg_to_run = a;
 double total_time = 0.0;
 for (int t = 0; t < num_iters; ++t)

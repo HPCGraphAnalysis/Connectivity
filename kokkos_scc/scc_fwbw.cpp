@@ -359,7 +359,7 @@ switch (alg_to_run)
       queue, queue_next,
       offsets, offsets_next); break;
   default:
-    printf("\n MAD FUCKING ERROR \n"); 
+    printf("\n Invalid algorithm selection. \'0\', \'1\', and \'2\' are supported.\n");
     exit(0); break;
 }
 

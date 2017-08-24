@@ -14,6 +14,11 @@ endif()
 
 message(STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
+option(ENABLE_TIMING "OFF")
+if(ENABLE_TIMING)
+  add_definitions(-DTIMING=1)
+endif()
+
 include_directories(${Kokkos_INCLUDE_DIRS_RET})
 if(KOKKOS_ENABLE_CUDA)
   set(scc_main_tgt scc_main.gpu)

@@ -77,7 +77,10 @@ using namespace std;
 #define ALPHA 15.0
 #define BETA 25
 
-#define TIMING 0
+#ifndef TIMING
+  #define TIMING 0
+#endif
+
 #define VERBOSE 1
 #define DEBUG 0
 #define VERIFY 1
@@ -250,7 +253,7 @@ void create_csr(int n, int m,
 
 void print_usage(char** argv)
 {
-  printf("Usage: %s [graph] [alg to run]\n", argv[0]);
+  printf("Usage: %s <graph> <alg to run> [<graph name> <timing iterations>]\n", argv[0]);
   exit(0);
 }
 
@@ -366,8 +369,8 @@ int main(int argc, char** argv)
   double this_runtime = timer();
 
 #if TIMING
-  num_iters = atoi(argv[2]);
   graphname = argv[3];
+  num_iters = atoi(argv[4]);
 #endif
 
   do_run<device_type>(n_dev, /* 1 */

@@ -96,7 +96,11 @@ struct fwbw_manhattan_local {
     host_size() = 1;
     num_visited = 1;
     deep_copy(queue_size, host_size);
-    queue(0) = host_root();
+
+    // initialize the queue with the root node
+    typename int_array::HostMirror host_queue = create_mirror_view(queue);
+    host_queue(0) = host_root();
+    deep_copy(queue, host_queue);
 
     int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG

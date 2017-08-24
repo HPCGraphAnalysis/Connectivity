@@ -113,7 +113,11 @@ struct fwbw_manhattan_global {
     num_visited_edges = 0;
     deep_copy(queue_size, host_size);
     deep_copy(sizeq_offsets, host_sizeq_offsets);
-    queue(0) = host_root();
+
+    // initialize the queue with the root node
+    typename int_array::HostMirror host_queue = create_mirror_view(queue);
+    host_queue(0) = host_root();
+    deep_copy(queue, host_queue);
 
     int team_size = team_policy::team_size_recommended(*this); //best guess
 #if DEBUG

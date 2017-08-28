@@ -140,7 +140,7 @@ struct fwbw_manhattan_local {
   {
     bool found = false;
     int index = 0;
-    int bound_high = tripcnts.size()-1;
+    int bound_high = tripcnts.size();
     while (!found)
     {
       index = (bound_high + bound_low) / 2;
@@ -198,7 +198,7 @@ struct fwbw_manhattan_local {
           vert = queue[league_offset + j];
         }
         int out = out_vertice(vert, i - tripcnts[j]);          
-        if (i + team_size > tripcnts[j+1])
+        if (i + team_size >= tripcnts[j+1])
           do_search = true;
         else
           do_search = false;

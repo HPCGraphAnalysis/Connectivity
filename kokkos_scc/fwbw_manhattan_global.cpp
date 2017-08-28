@@ -222,7 +222,7 @@ struct fwbw_manhattan_global {
     int vert; int j;
     for (int i = begin; i < end; i += team_size)
     {
-      if (i < max_offset && i > 0)
+      if (i < max_offset)
       {
         if (do_search)
         {
@@ -245,7 +245,7 @@ struct fwbw_manhattan_global {
           vert = queue[j];
         }
         int out = out_vertice(vert, i - offsets[j]);
-        if (i + team_size > offsets[j+1])
+        if (i + team_size >= offsets[j+1])
           do_search = true;
         else
           do_search = false;

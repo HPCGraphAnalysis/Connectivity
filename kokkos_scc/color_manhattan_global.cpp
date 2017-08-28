@@ -212,7 +212,7 @@ struct color_propagate_manhattan_global {
     int vert; int j;
     for (int i = begin; i < end; i += team_size)
     {
-      if (i < max_offset && i > 0)
+      if (i < max_offset)
       {
         if (do_search)
         {          
@@ -235,7 +235,7 @@ struct color_propagate_manhattan_global {
           bound_low = j;
           vert = queue[j];
         }         
-        if (i + team_size > offsets[j+1])
+        if (i + team_size >= offsets[j+1])
           do_search = true;
         else
           do_search = false;   
@@ -453,7 +453,7 @@ struct color_mark_scc_manhattan_global {
     int vert; int j = 0; int color = -1;
     for (int i = begin; i < end; i += team_size)
     {
-      if (i < max_offset && i > 0)
+      if (i < max_offset)
       {
         if (do_search)
         {
@@ -476,7 +476,7 @@ struct color_mark_scc_manhattan_global {
           vert = queue[j];
           color = colors[vert];
         }
-        if (i + team_size > offsets[j+1])
+        if (i + team_size >= offsets[j+1])
           do_search = true;
         else
           do_search = false;

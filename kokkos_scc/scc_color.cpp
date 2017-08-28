@@ -401,6 +401,7 @@ struct color_get_roots_offsets {
       int vert = valid_verts[i];
       if (colors[vert] == vert)
       {
+        scc_maps[vert] = vert;
         valid[vert] = false;
         local_buffer[local_count] = vert;        
         local_sum += in_degree(vert);

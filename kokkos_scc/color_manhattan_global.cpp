@@ -83,7 +83,6 @@ struct color_propagate_manhattan_global {
   int_array offsets_next;
   bool_array in_queue;
   bool_array in_queue_next;
-  int_array owner;
 
   long_type sizeq_offsets;
   int_type offsets_max;
@@ -94,8 +93,7 @@ struct color_propagate_manhattan_global {
     int_array queue_in, int_array queue_next_in,
     int_array offsets_in, int_array offsets_next_in, 
     int_type offsets_max_in,
-    bool_array in_queue_in, bool_array in_queue_next_in,
-    int_array owner_in)
+    bool_array in_queue_in, bool_array in_queue_next_in)
   : colors(colors_in)
   , out_array(out_array_in), out_degree_list(out_degree_list_in)
   , num_valid(num_valid_in), valid_verts(valid_verts_in), valid(valid_in)
@@ -103,7 +101,6 @@ struct color_propagate_manhattan_global {
   , offsets(offsets_in), offsets_next(offsets_next_in)
   , offsets_max(offsets_max_in)
   , in_queue(in_queue_in), in_queue_next(in_queue_next_in)
-  , owner(owner_in)
   , sizeq_offsets("size q offsetss"), queue_size("queue size")
   {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
@@ -262,13 +259,10 @@ struct color_propagate_manhattan_global {
                 local_offsets[local_count] = local_sum;
                 ++local_count;
               }
-              //owner[vert] = team_rank;
             }
         
-            if (!in_queue_next[vert])// && owner[vert] == team_rank)
-            {
-              in_queue_next[vert] = true;
-              //owner[vert] = -1;
+            if (!Kokkos::atomic_fetch_or(&in_queue_next[vert], true))
+	    {
               local_buffer[local_count] = vert;
               local_sum += out_degree(vert);
               local_offsets[local_count] = local_sum;

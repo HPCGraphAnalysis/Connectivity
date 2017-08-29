@@ -542,7 +542,6 @@ void do_coloring(Kokkos::View<int, ExecSpace> n,
   Kokkos::View<int*, ExecSpace> offsets_next,
   Kokkos::View<bool*, ExecSpace> in_queue,
   Kokkos::View<bool*, ExecSpace> in_queue_next,
-  Kokkos::View<int*, ExecSpace> owner,
   Kokkos::View<int*, ExecSpace> colors)
 {
   Kokkos::View<int, ExecSpace> num_roots("roots");  
@@ -597,8 +596,7 @@ switch (alg_to_run)
       num_valid, valid_verts, valid,
       queue, queue_next,
       offsets, offsets_next, offsets_max,
-      in_queue, in_queue_next,
-      owner); break;
+      in_queue, in_queue_next); break;
   default:
     printf("\nERROR: Incorrect Algorithm Choice\n"); 
     exit(0); break;

@@ -112,32 +112,32 @@ struct color_propagate_manhattan_global {
     typename long_type::HostMirror host_sizeq_offsets = create_mirror(sizeq_offsets);
     deep_copy(host_num_valid, num_valid);
     deep_copy(host_offsets_max, offsets_max);
-    *host_size = *host_num_valid;
-    *host_sizeq_offsets = 0;
+    host_size() = host_num_valid();
+    host_sizeq_offsets() = 0;
     num_visited = 0;
     num_visited_edges = 0;
     deep_copy(queue_size, host_size);
     deep_copy(sizeq_offsets, host_sizeq_offsets);
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
 #endif    
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d %d %d\n", *host_size, *host_offsets_max, num_visited_edges);
+      printf("%d %d %d\n", host_size(), host_offsets_max(), num_visited_edges);
 #endif
-      int num_teams = ((int)*host_offsets_max + WORK_CHUNK - 1 ) / WORK_CHUNK;
+      int num_teams = ((int)host_offsets_max() + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_sizeq_offsets, sizeq_offsets);
-      *host_size = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);   
-      *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
-      num_visited += *host_size;
-      num_visited_edges += *host_offsets_max;
-      *host_sizeq_offsets = (long)0;
+      host_size() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);   
+      host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
+      num_visited += host_size();
+      num_visited_edges += host_offsets_max();
+      host_sizeq_offsets() = (long)0;
       deep_copy(queue_size, host_size);
       deep_copy(offsets_max, host_offsets_max);
       deep_copy(sizeq_offsets, host_sizeq_offsets);
@@ -190,11 +190,10 @@ struct color_propagate_manhattan_global {
     offset_and_sum() = 0;
     dev.team_barrier();
 
-    int local_buffer[ LOCAL_BUFFER_LENGTH ];
-    int local_offsets[ LOCAL_BUFFER_LENGTH ];
+    int local_buffer[ LOCAL_BUFFER_LENGTH*2 ];
+    int local_offsets[ LOCAL_BUFFER_LENGTH*2 ];
     int local_count = 0;
     int local_sum = 0;
-    long local_qsize_off;
 
     int team_size = dev.team_size();
     int team_rank = dev.team_rank();
@@ -213,13 +212,11 @@ struct color_propagate_manhattan_global {
     int vert; int j;
     for (int i = begin; i < end; i += team_size)
     {
-      if (i < max_offset && i > 0)
+      if (i < max_offset)
       {
         if (do_search)
         {          
           bool found = false;
-          int iter = 0;
-    //      bound_high = queue_size();
           int new_high = bound_high;
           int new_low = bound_low;
           while (!found)
@@ -237,7 +234,7 @@ struct color_propagate_manhattan_global {
           bound_low = j;
           vert = queue[j];
         }         
-        if (i + team_size > offsets[j+1])
+        if (i + team_size >= offsets[j+1])
           do_search = true;
         else
           do_search = false;   
@@ -245,34 +242,39 @@ struct color_propagate_manhattan_global {
         in_queue[vert] = false;
         int color = colors[vert];
         int out = out_vertice(vert, i - offsets[j]); 
-        int out_color = colors[out];
-
-        if (color > out_color)
+        
+        if (valid[out])
         {
-          colors[out] = color;
+          int out_color = colors[out];
 
-          if (!in_queue_next[out])
+          if (color > out_color)
           {
-            in_queue_next[out] = true;
-            int out_degree = out_degree(out);
-            if (out_degree)
+            colors[out] = color;
+
+            if (!in_queue_next[out])
             {
-              local_buffer[local_count] = out;         
-              local_sum += out_degree;
+              in_queue_next[out] = true;
+              int out_degree = out_degree(out);
+              if (out_degree)
+              {
+                local_buffer[local_count] = out;         
+                local_sum += out_degree;
+                local_offsets[local_count] = local_sum;
+                ++local_count;
+              }
+              //owner[vert] = team_rank;
+            }
+        
+            if (!in_queue_next[vert])// && owner[vert] == team_rank)
+            {
+              in_queue_next[vert] = true;
+              //owner[vert] = -1;
+              local_buffer[local_count] = vert;
+              local_sum += out_degree(vert);
               local_offsets[local_count] = local_sum;
               ++local_count;
             }
-            owner[vert] = team_rank;
           }
-        }
-        if (!in_queue_next[vert] && owner[vert] == team_rank)
-        {
-          in_queue_next[vert] = true;
-          owner[vert] = -1;
-          local_buffer[local_count] = vert;
-          local_sum += out_degree(vert);
-          local_offsets[local_count] = local_sum;
-          ++local_count;
         }
       }
     }
@@ -367,22 +369,22 @@ struct color_mark_scc_manhattan_global {
     int num_visited = 0;
     int num_visited_edges = 0;
 
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d %d\n", *host_size, *host_offsets_max);
+      printf("%d %d\n", host_size(), host_offsets_max());
 #endif
-      int team_size = ExecSpace::team_recommended();
-      int num_teams = (*host_offsets_max + team_size - 1 ) / team_size;
+      int team_size = team_policy::team_size_recommended(*this);
+      int num_teams = (host_offsets_max() + team_size - 1 ) / team_size;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_sizeq_offsets, sizeq_offsets);
-      *host_size = (int)((*host_sizeq_offsets >> 32) & 0xFFFFFFFF);   
-      *host_offsets_max = (int)(*host_sizeq_offsets & 0xFFFFFFFF);
-      num_visited += *host_size;
-      num_visited_edges += *host_offsets_max;
-      *host_sizeq_offsets = (long)0;
+      host_size() = (int)((host_sizeq_offsets() >> 32) & 0xFFFFFFFF);   
+      host_offsets_max() = (int)(host_sizeq_offsets() & 0xFFFFFFFF);
+      num_visited += host_size();
+      num_visited_edges += host_offsets_max();
+      host_sizeq_offsets() = (long)0;
       deep_copy(queue_size, host_size);
       deep_copy(offsets_max, host_offsets_max);
       deep_copy(sizeq_offsets, host_sizeq_offsets);
@@ -437,7 +439,6 @@ struct color_mark_scc_manhattan_global {
     int local_offsets[ LOCAL_BUFFER_LENGTH ];
     int local_count = 0;
     int local_sum = 0;
-    long local_qsize_off;
 
     int team_size = dev.team_size();
     int team_rank = dev.team_rank();
@@ -456,12 +457,11 @@ struct color_mark_scc_manhattan_global {
     int vert; int j = 0; int color = -1;
     for (int i = begin; i < end; i += team_size)
     {
-      if (i < max_offset && i > 0)
+      if (i < max_offset)
       {
         if (do_search)
         {
           bool found = false;
-          int iter = 0;
           int new_high = bound_high;
           int new_low = bound_low;
           while (!found)
@@ -480,7 +480,7 @@ struct color_mark_scc_manhattan_global {
           vert = queue[j];
           color = colors[vert];
         }
-        if (i + team_size > offsets[j+1])
+        if (i + team_size >= offsets[j+1])
           do_search = true;
         else
           do_search = false;

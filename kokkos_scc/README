@@ -1,4 +1,48 @@
 Strongly connected components using Kokkos
 
-7/28/16:  This code will not compile with the current version of Trilinos;
-it will need updates in order to compile.
+Contact: George M. Slota -- slotag@rpi.edu
+
+29 August 2017: 
+Successfully tested on a IBM Power8 and Nvidia K80 test system with OpenMP and Cuda
+
+
+To make and run:
+
+1. Get Kokkos repo (git clone https://github.com/kokkos/kokkos.git)
+
+2. Modify Connectivity/kokkos_scc/Makefile
+2.a Set KOKKOS_PATH to base path of kokkos repo
+2.b Set KOKKOS_DEVICES and KOKKOS_ARCH for GPU and/or CPU architecture, if needed (see Kokkos documentation)
+
+3. For CPU compilation: Connectivity/kokkos_scc$ make -j KOKKOS_DEVICES=OpenMP
+3.a For GPU compilation: Connectivity/kokkos_scc$ make -j KOKKOS_DEVICES=Cuda
+
+4. To run: ./scc_main.host [graphfile] [algorithm]
+
+[graphfile] has format:
+n m
+v0 v1
+v0 v2
+v1 v2
+....
+
+n is number of vertices
+m is number of edges
+subsequent lines are directed edges from vertex id to vertex id
+vertices are expected to be 0-indexed
+the maximum vertex id should be (n-1)
+
+[algorithm] choices:
+0 - baseline parallelism
+1 - local manhattan collapse
+2 - global manhattan collapse
+
+5. See paper for additional explanation and discussion -- cite as:
+
+@inproceedings{slota_ipdps2015,
+  author    = {G. M. Slota and S. Rajamanickam and K. Madduri},
+  title     = {High-performance Graph Analytics on Manycore Processors},
+  booktitle = {International Parallel \& Distributed Processing Symposium ({IPDPS})},
+  year      = {2015}
+}
+

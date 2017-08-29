@@ -93,28 +93,34 @@ struct fwbw_baseline {
     typename int_type::HostMirror host_next = create_mirror(next_size);
     typename int_type::HostMirror host_root = create_mirror(root);
     deep_copy(host_root, root);
-    *host_size = 1;
+    host_size() = 1;
     num_visited = 1;
     deep_copy(queue_size, host_size);
-    deep_copy(queue, host_root);
 
-    int team_size = ExecSpace::team_recommended();
+    // initialize the queue with the root node
+    typename int_array::HostMirror host_queue = create_mirror_view(queue);
+    host_queue(0) = host_root();
+    deep_copy(queue, host_queue);
+
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
+    int count = 0;
 #endif
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
+      int num_teams = (host_size() + WORK_CHUNK - 1 ) / WORK_CHUNK;
 #if DEBUG
-      printf("%d %d\n", num_visited, *host_size);
+      printf("iter %d num_visited %d host_size %d num_teams %d\n",
+          count, num_visited, host_size(), num_teams);
 #endif
-      int num_teams = (*host_size + WORK_CHUNK - 1 ) / WORK_CHUNK;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
-      num_visited += *host_next;
-      *host_size = *host_next;
-      *host_next = 0;
+      num_visited += host_next();
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next);
       deep_copy(queue_size, host_size);
 
@@ -139,7 +145,7 @@ struct fwbw_baseline {
       int out_degree = 0;
       int vert = -1;
 
-      if (i < *queue_size)
+      if (i < queue_size())
       {
         vert = queue[i];
         out_degree = out_degree(vert);

@@ -61,7 +61,6 @@ void do_run(Kokkos::View<int, ExecSpace> n,
 #if TIMING
 for (int a = 0; a < 3; ++a)
 {
-char* algname = new char[100];
 alg_to_run = a;
 double total_time = 0.0;
 for (int t = 0; t < num_iters; ++t)
@@ -70,14 +69,14 @@ for (int t = 0; t < num_iters; ++t)
   typename Kokkos::View<int, ExecSpace>::HostMirror host_n = Kokkos::create_mirror(n);
   typename Kokkos::View<int, ExecSpace>::HostMirror host_num_valid = Kokkos::create_mirror(num_valid);
   Kokkos::deep_copy(host_n, n);
-  Kokkos::View<int*, ExecSpace> queue("queue", *host_n*QUEUE_MULTIPLIER);
-  Kokkos::View<int*, ExecSpace> queue_next("queue next", *host_n*QUEUE_MULTIPLIER);
-  Kokkos::View<int*, ExecSpace> offsets("offsets", *host_n*QUEUE_MULTIPLIER);
-  Kokkos::View<int*, ExecSpace> offsets_next("offsets next", *host_n*QUEUE_MULTIPLIER);
-  Kokkos::View<bool*, ExecSpace> in_queue("queue next", *host_n);
-  Kokkos::View<bool*, ExecSpace> in_queue_next("queue next", *host_n);
-  Kokkos::View<int*, ExecSpace> owner("owner", *host_n);
-  Kokkos::View<int*, ExecSpace> colors("colors", *host_n);
+  Kokkos::View<int*, ExecSpace> queue("queue", host_n()*QUEUE_MULTIPLIER);
+  Kokkos::View<int*, ExecSpace> queue_next("queue next", host_n()*QUEUE_MULTIPLIER);
+  Kokkos::View<int*, ExecSpace> offsets("offsets", host_n()*QUEUE_MULTIPLIER);
+  Kokkos::View<int*, ExecSpace> offsets_next("offsets next", host_n()*QUEUE_MULTIPLIER);
+  Kokkos::View<bool*, ExecSpace> in_queue("queue next", host_n());
+  Kokkos::View<bool*, ExecSpace> in_queue_next("queue next", host_n());
+  Kokkos::View<int*, ExecSpace> owner("owner", host_n());
+  Kokkos::View<int*, ExecSpace> colors("colors", host_n());
 
 
 #if VERBOSE
@@ -90,7 +89,7 @@ for (int t = 0; t < num_iters; ++t)
   typename Kokkos::View<int*, ExecSpace>::HostMirror scc_host = Kokkos::create_mirror(scc_maps);
   typename Kokkos::View<int, ExecSpace>::HostMirror n_host = Kokkos::create_mirror(n);
   Kokkos::deep_copy(n_host, n);
-  int* maps = new int[*n_host];
+  int* maps = new int[n_host()];
 #endif
 
 #if TIMING
@@ -105,16 +104,16 @@ for (int t = 0; t < num_iters; ++t)
 #if VERBOSE
   elt = timer() - elt;
   Kokkos::deep_copy(host_num_valid, num_valid);
-  printf("\tDone, %9.6lf, valid: %d\n", elt, *host_num_valid);
+  printf("\tDone, %9.6lf, valid: %d\n", elt, host_num_valid());
   printf("Performing FWBW step ... \n");
   elt = timer();
 #endif
 
 #if VERIFY
   Kokkos::deep_copy(scc_host, scc_maps);
-  for (int i = 0; i < *n_host; ++i)
+  for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 
   do_fwbw<ExecSpace>(n,
@@ -130,16 +129,16 @@ for (int t = 0; t < num_iters; ++t)
 #if VERBOSE
   elt = timer() - elt;
   Kokkos::deep_copy(host_num_valid, num_valid);
-  printf("\tDone, %9.6lf valid: %d\n", elt, *host_num_valid);
+  printf("\tDone, %9.6lf valid: %d\n", elt, host_num_valid());
   printf("Performing Coloring step ... \n");
   elt = timer();
 #endif
 
 #if VERIFY
   Kokkos::deep_copy(scc_host, scc_maps);
-  for (int i = 0; i < *n_host; ++i)
+  for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 
   do_coloring<ExecSpace>(n,
@@ -159,16 +158,16 @@ for (int t = 0; t < num_iters; ++t)
 #if VERBOSE
   elt = timer() - elt;
   Kokkos::deep_copy(host_num_valid, num_valid);
-  printf("\tDone, %9.6lf, valid: %d\n", elt, *host_num_valid);
+  printf("\tDone, %9.6lf, valid: %d\n", elt, host_num_valid());
   start_time = timer() - start_time;
   printf("TOTAL: %9.6lf\n", start_time);
 #endif
 
 #if VERIFY
   Kokkos::deep_copy(scc_host, scc_maps);
-  for (int i = 0; i < *n_host; ++i)
+  for (int i = 0; i < n_host(); ++i)
     maps[i] = scc_host[i];
-  scc_verify(*n_host, maps);
+  scc_verify(n_host(), maps);
 #endif
 #if TIMING
   total_time += this_time;

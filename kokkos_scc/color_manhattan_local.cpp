@@ -98,23 +98,23 @@ struct color_propagate_manhattan_local {
     deep_copy(queue_size, host_num_valid);
     deep_copy(host_size, host_num_valid);
 
-    int team_size = ExecSpace::team_recommended();
+    int team_size = team_policy::team_size_recommended(*this);
 #if DEBUG
     double elt = timer();
 #endif    
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d\n", *host_size);
+      printf("%d\n", host_size());
 #endif
-      int num_teams = ( *host_size + team_size - 1 ) / team_size;
+      int num_teams = ( host_size() + team_size - 1 ) / team_size;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
       deep_copy(queue_size, next_size);
-      *host_size = *host_next;
-      *host_next = 0;
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next); 
 
       int_array temp = queue;
@@ -133,7 +133,7 @@ struct color_propagate_manhattan_local {
   {
     bool found = false;
     int index = 0;
-    int bound_high = tripcnts.size()-1;
+    int bound_high = tripcnts.size();
     while (!found)
     {
       index = (bound_high + bound_low) / 2;
@@ -163,7 +163,7 @@ struct color_propagate_manhattan_local {
     int index = league_offset + team_rank;
     int out_degree;
 
-    if (index < *queue_size)
+    if (index < queue_size())
       out_degree = out_degree(queue[index]);
     else
       out_degree = 0;
@@ -191,7 +191,7 @@ struct color_propagate_manhattan_local {
           j = highest_less_than(tripcnts, i, j);
           vert = queue[league_offset + j];
         }         
-        if (i + team_size > tripcnts[j+1])
+        if (i + team_size >= tripcnts[j+1])
           do_search = true;
         else
           do_search = false;       
@@ -301,20 +301,20 @@ struct color_mark_scc_manhattan_local {
     deep_copy(host_size, num_roots);
     deep_copy(queue_size, host_size);
 
-    while (*host_size > 0)
+    while (host_size() > 0)
     {
 #if DEBUG
-      printf("%d\n", *host_size);
+      printf("%d\n", host_size());
 #endif
-      int team_size = ExecSpace::team_recommended();
-      int num_teams = (*host_size + team_size - 1 ) / team_size;
+      int team_size = team_policy::team_size_recommended(*this);
+      int num_teams = (host_size() + team_size - 1 ) / team_size;
       team_policy policy(num_teams, team_size);
       Kokkos::parallel_for(policy , *this);
 
       deep_copy(host_next, next_size);
       deep_copy(queue_size, next_size);
-      *host_size = *host_next;
-      *host_next = 0;
+      host_size() = host_next();
+      host_next() = 0;
       deep_copy(next_size, host_next); 
 
       int_array temp = queue;
@@ -330,7 +330,7 @@ struct color_mark_scc_manhattan_local {
   {
     bool found = false;
     int index = 0;
-    int bound_high = tripcnts.size()-1;
+    int bound_high = tripcnts.size();
     while (!found)
     {
       index = (bound_high + bound_low) / 2;
@@ -356,7 +356,7 @@ struct color_mark_scc_manhattan_local {
     int index = league_offset + team_rank;
     int in_degree;
 
-    if (index < *queue_size)
+    if (index < queue_size())
       in_degree = in_degree(queue[index]);
     else
       in_degree = 0;
@@ -387,7 +387,7 @@ struct color_mark_scc_manhattan_local {
           vert = queue[league_offset + j];
           color = colors[vert];
         }         
-        if (i + team_size > tripcnts[j+1])
+        if (i + team_size >= tripcnts[j+1])
           do_search = true;
         else
           do_search = false;       

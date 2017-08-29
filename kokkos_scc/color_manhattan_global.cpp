@@ -245,6 +245,7 @@ struct color_propagate_manhattan_global {
         int out = out_vertice(vert, i - offsets[j]); 
         int out_color = colors[out];
 
+        //propagation
         if (color > out_color)
         {
           colors[out] = color;
@@ -255,23 +256,22 @@ struct color_propagate_manhattan_global {
             int out_degree = out_degree(out);
             if (out_degree)
             {
-              local_buffer[local_count] = out;         
+              local_buffer[local_count] = out;
               local_sum += out_degree;
               local_offsets[local_count] = local_sum;
               ++local_count;
             }
-            owner[vert] = team_rank;
+          }
+
+          if (!Kokkos::atomic_fetch_or(&in_queue_next[vert], true))
+          {
+            local_buffer[local_count] = vert;
+            local_sum += out_degree(vert);
+            local_offsets[local_count] = local_sum;
+            ++local_count;
           }
         }
-        if (!in_queue_next[vert] && owner[vert] == team_rank)
-        {
-          in_queue_next[vert] = true;
-          owner[vert] = -1;
-          local_buffer[local_count] = vert;
-          local_sum += out_degree(vert);
-          local_offsets[local_count] = local_sum;
-          ++local_count;
-        }
+
       }
     }
 

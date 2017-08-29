@@ -1,0 +1,5 @@
+Please refer the the READMEs in the subdirectories
+
+Multistep/ has a CPU/OpenMP implementation of the multistep algorithm for CC,WCC, and SCC
+
+kokkos_scc/ has a CPU/GPU implementation of the multistep algorithm for SCC using kokkos as a backend

@@ -31,6 +31,7 @@ m is number of edges
 subsequent lines are directed edges from vertex id to vertex id
 vertices are expected to be 0-indexed
 the maximum vertex id should be (n-1)
+the number of lines in [graphfile] should be (m+1)
 
 [algorithm] choices:
 0 - baseline parallelism

@@ -1,51 +1,53 @@
-Strongly connected components using Kokkos
+# Strongly connected components using Kokkos
 
-## Status 
-7/28/16:  This code will not compile with the current version of Trilinos;
-it will need updates in order to compile.
+Contact: George M. Slota -- slotag@rpi.edu
 
-8/21/17:  Updated to use Kokkos 2.03.13.  Runs successfully on the google web
-graph here:
-`
-http://www.cs.rpi.edu/~slotag/classes/FA16/data/google.graph
+## Status
 
-8/24/17: Initial GPU support.
+29 August 2017: 
+Successfully tested on a IBM Power8, Nvidia P100, and Nvidia K80 with OpenMP and Cuda.
 
-On the google web graph it runs successfully for algorithm=0 on a P100 GPU
-, but finds an incorrect Max SCC for algorithm=[1|2]:
+## To make and run
+
+1. Get Kokkos repo (`git clone https://github.com/kokkos/kokkos.git`)
+
+2. Use Make by modifying `Connectivity/kokkos_scc/Makefile` or use CMake (details omitted)
+    1. Set KOKKOS_PATH to base path of kokkos repo
+    2. Set KOKKOS_DEVICES and KOKKOS_ARCH for GPU and/or CPU architecture, if needed (see Kokkos documentation)
+
+3. For CPU compilation: `Connectivity/kokkos_scc$ make -j KOKKOS_DEVICES=OpenMP`
+3.a For GPU compilation: `Connectivity/kokkos_scc$ make -j KOKKOS_DEVICES=Cuda`
+
+4. To run: `./scc_main.host [graphfile] [algorithm]`
+
+    [graphfile] has format:
+    ```
+    n m
+    v0 v1
+    v0 v2
+    v1 v2
+    ....
+    ```
+
+    * n is number of vertices
+    * m is number of edges
+    * subsequent lines are directed edges from vertex id to vertex id
+    * vertices are expected to be 0-indexed
+    * the maximum vertex id should be (n-1)
+    * the number of lines in [graphfile] should be (m+1)
+
+    [algorithm] choices:
+    * 0 - baseline parallelism
+    * 1 - local manhattan collapse
+    * 2 - global manhattan collapse
+
+## Additional explanation and discussion 
 
 ```
-==> google_alg0.out <==
-Num SCCs: 371764, Nontrivial: 12874, Max SCC: 434818, Unassigned 0
-Done,  0.429645
-
-==> google_alg1.out <==
-Num SCCs: 371774, Nontrivial: 12869, Max SCC: 435057, Unassigned 0
-Done,  0.532812
-
-==> google_alg2.out <==
-Num SCCs: 310304, Nontrivial: 8697, Max SCC: 435032, Unassigned 74459
-Done,  0.623173
+@inproceedings{slota_ipdps2015,
+  author    = {G. M. Slota and S. Rajamanickam and K. Madduri},
+  title     = {High-performance Graph Analytics on Manycore Processors},
+  booktitle = {International Parallel \& Distributed Processing Symposium ({IPDPS})},
+  year      = {2015}
+}
 ```
-
-Similarly, on a Power8 host, algorithm=[1|2] finds the correct Max SCC, but
-algorithm=2 is incorrect:
-
-```
-==> google_alg0.out <==
-Num SCCs: 371764, Nontrivial: 12874, Max SCC: 434818, Unassigned 0
-Done,  1.201805
-
-==> google_alg1.out <==
-Num SCCs: 371764, Nontrivial: 12874, Max SCC: 434818, Unassigned 0
-Done,  1.415422
-
-==> google_alg2.out <==
-Num SCCs: 303071, Nontrivial: 3396, Max SCC: 478290, Unassigned 80172
-Done,  1.384869
-```
-
-8/28/2017: GPU support fixed for manhattan local, global still appears to have
-color propagation issues.
-
-8/29/2017: GPU support fixed for manhattan global.

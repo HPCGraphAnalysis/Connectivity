@@ -83,7 +83,6 @@ struct color_propagate_manhattan_global {
   int_array offsets_next;
   bool_array in_queue;
   bool_array in_queue_next;
-  int_array owner;
 
   long_type sizeq_offsets;
   int_type offsets_max;
@@ -94,8 +93,7 @@ struct color_propagate_manhattan_global {
     int_array queue_in, int_array queue_next_in,
     int_array offsets_in, int_array offsets_next_in, 
     int_type offsets_max_in,
-    bool_array in_queue_in, bool_array in_queue_next_in,
-    int_array owner_in)
+    bool_array in_queue_in, bool_array in_queue_next_in)
   : colors(colors_in)
   , out_array(out_array_in), out_degree_list(out_degree_list_in)
   , num_valid(num_valid_in), valid_verts(valid_verts_in), valid(valid_in)
@@ -103,7 +101,6 @@ struct color_propagate_manhattan_global {
   , offsets(offsets_in), offsets_next(offsets_next_in)
   , offsets_max(offsets_max_in)
   , in_queue(in_queue_in), in_queue_next(in_queue_next_in)
-  , owner(owner_in)
   , sizeq_offsets("size q offsetss"), queue_size("queue size")
   {
     typename int_type::HostMirror host_num_valid = create_mirror(num_valid);
@@ -190,8 +187,8 @@ struct color_propagate_manhattan_global {
     offset_and_sum() = 0;
     dev.team_barrier();
 
-    int local_buffer[ LOCAL_BUFFER_LENGTH ];
-    int local_offsets[ LOCAL_BUFFER_LENGTH ];
+    int local_buffer[ LOCAL_BUFFER_LENGTH*2 ];
+    int local_offsets[ LOCAL_BUFFER_LENGTH*2 ];
     int local_count = 0;
     int local_sum = 0;
 
@@ -217,7 +214,6 @@ struct color_propagate_manhattan_global {
         if (do_search)
         {          
           bool found = false;
-    //      bound_high = queue_size();
           int new_high = bound_high;
           int new_low = bound_low;
           while (!found)
@@ -243,37 +239,39 @@ struct color_propagate_manhattan_global {
         in_queue[vert] = false;
         int color = colors[vert];
         int out = out_vertice(vert, i - offsets[j]); 
-        int out_color = colors[out];
-
-        //propagation
-        if (color > out_color)
+        
+        if (valid[out])
         {
-          colors[out] = color;
+          int out_color = colors[out];
 
-          if (!in_queue_next[out])
+          if (color > out_color)
           {
-            in_queue_next[out] = true;
-            int out_degree = out_degree(out);
-            if (out_degree)
+            colors[out] = color;
+
+            if (!in_queue_next[out])
             {
-              local_buffer[local_count] = out;
-              local_sum += out_degree;
+              in_queue_next[out] = true;
+              int out_degree = out_degree(out);
+              if (out_degree)
+              {
+                local_buffer[local_count] = out;         
+                local_sum += out_degree;
+                local_offsets[local_count] = local_sum;
+                ++local_count;
+              }
+            }
+        
+            if (!Kokkos::atomic_fetch_or(&in_queue_next[vert], true))
+	    {
+              local_buffer[local_count] = vert;
+              local_sum += out_degree(vert);
               local_offsets[local_count] = local_sum;
               ++local_count;
             }
-          }
-
-          if (!Kokkos::atomic_fetch_or(&in_queue_next[vert], true))
-          {
-            local_buffer[local_count] = vert;
-            local_sum += out_degree(vert);
-            local_offsets[local_count] = local_sum;
-            ++local_count;
-          }
-        }
-
-      }
-    }
+          } //end color > out_color
+        } //end valid[out]
+      } //end i < max_offset
+    } //end for
 
     int team_offset = dev.team_scan(local_count, &team_queue_size());
     int cur_sum = dev.team_scan(local_sum, &team_sum());

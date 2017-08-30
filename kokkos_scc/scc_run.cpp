@@ -75,7 +75,6 @@ for (int t = 0; t < num_iters; ++t)
   Kokkos::View<int*, ExecSpace> offsets_next("offsets next", host_n()*QUEUE_MULTIPLIER);
   Kokkos::View<bool*, ExecSpace> in_queue("queue next", host_n());
   Kokkos::View<bool*, ExecSpace> in_queue_next("queue next", host_n());
-  Kokkos::View<int*, ExecSpace> owner("owner", host_n());
   Kokkos::View<int*, ExecSpace> colors("colors", host_n());
 
 
@@ -149,7 +148,7 @@ for (int t = 0; t < num_iters; ++t)
     queue, queue_next,
     offsets, offsets_next,
     in_queue, in_queue_next,
-    colors, owner);
+    colors);
 
 #if TIMING
   this_time = timer() - this_time;

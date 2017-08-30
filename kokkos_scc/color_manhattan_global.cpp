@@ -268,10 +268,10 @@ struct color_propagate_manhattan_global {
               local_offsets[local_count] = local_sum;
               ++local_count;
             }
-          }
-        }
-      }
-    }
+          } //end color > out_color
+        } //end valid[out]
+      } //end i < max_offset
+    } //end for
 
     int team_offset = dev.team_scan(local_count, &team_queue_size());
     int cur_sum = dev.team_scan(local_sum, &team_sum());

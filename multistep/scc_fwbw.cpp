@@ -423,7 +423,7 @@ int update_valid(graph& g, bool* valid, bool* scc,
   int thread_start;
 
 #pragma omp for nowait
-  for (int i = 0; i < g.n; ++i)
+  for (int i = 0; i < num_valid; ++i)
   {
     int vert = valid_verts[i];
     if (scc[vert])
